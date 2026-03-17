@@ -1,0 +1,345 @@
+:root {
+  --page-bg: #edf2fb;
+  --mask-bg: rgba(15, 23, 42, 0.34);
+  --dialog-bg: #ffffff;
+  --dialog-shadow: 0 28px 72px rgba(36, 53, 82, 0.22);
+  --title-color: #18233a;
+  --text-color: #738096;
+  --card-line: #dce3ee;
+  --table-line: #e8edf5;
+  --soft-fill: #f7fafc;
+  --accent: #3067e6;
+  --accent-hover: #2458d0;
+  --success-bg: #e7faf1;
+  --success-fill: #0d9b6f;
+  --danger: #df4d4d;
+  --danger-hover: #c93f3f;
+  --danger-bg: #fdeeee;
+  --danger-fill: #d14343;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+  background:
+    radial-gradient(circle at top, rgba(48, 103, 230, 0.08), transparent 30%),
+    linear-gradient(180deg, #f9fbff 0%, var(--page-bg) 100%);
+}
+
+body {
+  color: var(--title-color);
+}
+
+button {
+  font: inherit;
+}
+
+.page-shell {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+}
+
+.preview-trigger {
+  border: none;
+  border-radius: 18px;
+  padding: 14px 28px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.modal-mask {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--mask-bg);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.modal-mask.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.success-dialog {
+  width: min(820px, 100%);
+  height: min(620px, calc(100vh - 48px));
+  overflow: hidden;
+  border-radius: 18px;
+  background: var(--dialog-bg);
+  box-shadow: var(--dialog-shadow);
+  padding: 24px 28px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.success-badge {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(circle at center, #f1fdf7 0%, var(--success-bg) 100%);
+}
+
+.success-badge svg {
+  width: 36px;
+  height: 36px;
+}
+
+.success-badge circle {
+  fill: transparent;
+}
+
+.success-badge path {
+  fill: var(--success-fill);
+}
+
+.success-badge.is-failed {
+  background: radial-gradient(circle at center, #fff6f6 0%, var(--danger-bg) 100%);
+}
+
+.success-badge.is-failed path {
+  fill: var(--danger-fill);
+}
+
+.dialog-title {
+  margin: 8px 0 0;
+  font-size: 28px;
+  line-height: 1.12;
+  font-weight: 700;
+}
+
+.dialog-description {
+  margin: 6px 0 0;
+  font-size: 15px;
+  line-height: 1.45;
+  font-weight: 600;
+  color: var(--text-color);
+  text-align: center;
+}
+
+.summary-grid {
+  width: 100%;
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.summary-card {
+  min-height: 68px;
+  border: 1px solid var(--card-line);
+  border-radius: 12px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 12px;
+}
+
+.summary-label {
+  font-size: 15px;
+  line-height: 1.2;
+  color: var(--text-color);
+  font-weight: 600;
+}
+
+.summary-value {
+  font-size: 22px;
+  line-height: 1;
+  font-weight: 700;
+}
+
+.success-list-panel {
+  width: 100%;
+  margin-top: 14px;
+  flex: 1;
+  min-height: 0;
+  border: 1px solid var(--card-line);
+  border-radius: 20px;
+  background: var(--soft-fill);
+  padding: 12px;
+  display: flex;
+}
+
+.list-table {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid var(--table-line);
+}
+
+.list-table-head,
+.list-row {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1.7fr) minmax(150px, 1fr) 110px;
+  gap: 0;
+  align-items: center;
+}
+
+.list-table-head {
+  min-height: 36px;
+  background: #f1f5fb;
+  color: #637189;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.list-table-head span,
+.list-row span {
+  padding: 0 12px;
+}
+
+.list-table-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+.list-row {
+  min-height: 38px;
+  border-top: 1px solid var(--table-line);
+  font-size: 13px;
+  line-height: 1.2;
+  color: #2d3a52;
+}
+
+.list-row span:nth-child(2) {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.status-text {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 48px;
+  height: 22px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.status-text.is-success {
+  color: #0d9b6f;
+  background: rgba(13, 155, 111, 0.12);
+}
+
+.status-text.is-failed {
+  color: #d14343;
+  background: rgba(209, 67, 67, 0.12);
+}
+
+.confirm-button {
+  margin-top: 14px;
+  min-width: 240px;
+  border: none;
+  border-radius: 16px;
+  padding: 14px 26px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 18px;
+  line-height: 1;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 18px 36px rgba(48, 103, 230, 0.22);
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.confirm-button:hover {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+}
+
+.confirm-button.is-failed {
+  background: var(--danger);
+  box-shadow: 0 18px 36px rgba(209, 67, 67, 0.2);
+}
+
+.confirm-button.is-failed:hover {
+  background: var(--danger-hover);
+}
+
+@media (max-width: 960px) {
+  .success-dialog {
+    height: min(640px, calc(100vh - 32px));
+    padding: 20px 16px 18px;
+    border-radius: 16px;
+  }
+
+  .success-badge {
+    width: 64px;
+    height: 64px;
+  }
+
+  .dialog-title {
+    font-size: 24px;
+  }
+
+  .dialog-description {
+    font-size: 14px;
+  }
+
+  .summary-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .summary-card {
+    min-height: 58px;
+    gap: 4px;
+    padding: 8px 10px;
+  }
+
+  .summary-label {
+    font-size: 14px;
+  }
+
+  .summary-value {
+    font-size: 20px;
+  }
+
+  .list-table-head,
+  .list-row {
+    grid-template-columns: 58px minmax(0, 1.25fr) minmax(108px, 1fr) 78px;
+  }
+
+  .list-table-head {
+    min-height: 34px;
+    font-size: 12px;
+  }
+
+  .list-row {
+    min-height: 36px;
+    font-size: 12px;
+  }
+
+  .confirm-button {
+    min-width: 100%;
+    font-size: 17px;
+    padding: 14px 22px;
+  }
+}

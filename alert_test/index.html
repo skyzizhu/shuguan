@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>弹框示例</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <main class="demo-page">
+    <button class="preview-button" type="button" id="openModal">显示弹框</button>
+  </main>
+
+  <div class="alert-mask is-visible" id="alertMask" aria-hidden="false">
+    <div
+      class="alert-dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="alertTitle"
+      aria-describedby="alertDescription"
+    >
+      <button class="dialog-close" type="button" id="closeModal" aria-label="关闭">×</button>
+
+      <div class="alert-header">
+        <div class="alert-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" focusable="false">
+            <path d="M12 2.75a9.25 9.25 0 1 0 9.25 9.25A9.26 9.26 0 0 0 12 2.75Zm0 13.2a1.05 1.05 0 1 1-1.05 1.05A1.05 1.05 0 0 1 12 15.95Zm1.1-3.35a1.1 1.1 0 0 1-2.2 0V7.85a1.1 1.1 0 0 1 2.2 0Z"/>
+          </svg>
+        </div>
+
+        <h1 class="alert-title" id="alertTitle">温馨提示</h1>
+      </div>
+      <p class="alert-description" id="alertDescription">
+        当前内容没有评论信息，确定要智能生成评论吗？
+      </p>
+      <div class="alert-actions">
+        <button class="ghost-button" type="button" id="cancelModal">取消</button>
+        <button class="primary-button" type="button" id="confirmModal">确定</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="./script.js"></script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>发送成功弹窗</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <main class="page-shell">
+    <button class="preview-trigger" type="button" id="openModal">查看弹窗</button>
+  </main>
+
+  <div class="modal-mask is-visible" id="modalMask" aria-hidden="false">
+    <section
+      class="success-dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="dialogTitle"
+      aria-describedby="dialogDescription"
+    >
+      <div class="success-badge" aria-hidden="true">
+        <svg viewBox="0 0 64 64" focusable="false">
+          <circle cx="32" cy="32" r="32"></circle>
+          <path d="M27.8 40.4 20.6 33a2.6 2.6 0 1 1 3.7-3.6l3.1 3.2 11.9-16a2.6 2.6 0 1 1 4.2 3.1L29.8 39.9a2.6 2.6 0 0 1-2 .5Z"></path>
+        </svg>
+      </div>
+
+      <h1 class="dialog-title" id="dialogTitle">发送成功</h1>
+      <p class="dialog-description" id="dialogDescription">
+        本轮评论已全部发送完成，详情可在发布记录中进行查看。
+      </p>
+
+      <div class="summary-grid">
+        <article class="summary-card">
+          <span class="summary-label">发布类型</span>
+          <strong class="summary-value">实时发布</strong>
+        </article>
+        <article class="summary-card">
+          <span class="summary-label">成功</span>
+          <strong class="summary-value" id="successCount">0条</strong>
+        </article>
+        <article class="summary-card">
+          <span class="summary-label">失败</span>
+          <strong class="summary-value">0条</strong>
+        </article>
+      </div>
+
+      <section class="success-list-panel">
+        <div class="list-table">
+          <div class="list-table-head">
+            <span>序号</span>
+            <span>评论内容</span>
+            <span>发送账号</span>
+            <span>状态</span>
+          </div>
+          <div class="list-table-body" id="successList"></div>
+        </div>
+      </section>
+
+      <button class="confirm-button" type="button" id="confirmButton">确定</button>
+    </section>
+  </div>
+
+  <script src="./script.js"></script>
+</body>
+</html>

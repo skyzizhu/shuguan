@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>智能审核</title>
+  <link rel="stylesheet" href="styles/main.css?v=20260317-7">
+</head>
+<body>
+  <div class="screen-stage" id="screenStage">
+    <section class="app-shell screen-panel screen-panel-current">
+      <header class="topbar">
+        <div class="brand">
+          <img src="assets/brand-mark.svg" alt="" width="36" height="36">
+          <div class="brand-copy">
+            <strong>智能审核助手</strong>
+            <span>审核您的文案和素材是否合规，支持文字、文档、图片的识别和审核。</span>
+          </div>
+        </div>
+      </header>
+
+      <main class="page-main">
+        <section class="task-panel">
+          <div class="task-panel-head">
+            <p class="task-section-title">一，添加需要审核的内容与素材。</p>
+
+            <div class="task-mode-switch">
+              <button class="secondary-mode-button" type="button" id="modeToggle">文字模式</button>
+            </div>
+          </div>
+
+          <div class="unified-composer" id="composerPanel">
+            <section class="composer-box">
+              <div class="composer-meta">
+                <span id="charCount">0</span>
+              </div>
+
+              <div class="editor-shell is-empty" id="editorShell">
+                <textarea id="contentInput" placeholder=""></textarea>
+
+                <div class="empty-background" id="emptyBackground">
+                  <img src="assets/upload-cloud.svg" alt="" width="48" height="48">
+                  <strong>点击、拖拽图片或文档到此处</strong>
+                  <p>快捷、智能地审核您的文稿内容</p>
+                  <div class="file-type-row">
+                    <span>JPG</span>
+                    <span>PNG</span>
+                    <span>PDF</span>
+                    <span>DOC</span>
+                    <span>DOCX</span>
+                  </div>
+                </div>
+
+                <div class="attachment-state" id="attachmentState"></div>
+              </div>
+
+              <input
+                id="fileInput"
+                class="visually-hidden"
+                type="file"
+                accept=".jpg,.png,.pdf,.doc,.docx"
+              >
+            </section>
+          </div>
+
+          <div class="task-action-bar">
+            <button class="primary-button round-button task-review-button" type="button" id="startReview">审核</button>
+          </div>
+        </section>
+
+        <section class="helper-grid">
+          <article class="helper-card">
+            <p class="helper-title">二，文案内容审核。</p>
+            <p class="helper-text">AI大模型智能审核文案内容</p>
+          </article>
+          <article class="helper-card">
+            <p class="helper-title">三，一键发布内容。</p>
+            <p class="helper-text">将审核无误的文案内容快捷发布到社交平台</p>
+          </article>
+        </section>
+      </main>
+    </section>
+
+    <section class="next-screen screen-panel" id="nextScreen">
+      <header class="topbar topbar-secondary">
+        <div class="brand">
+          <img src="assets/brand-mark.svg" alt="" width="36" height="36">
+          <div class="brand-copy">
+            <strong>智能审核助手</strong>
+            <span>智能审核结果页</span>
+          </div>
+        </div>
+      </header>
+
+      <main class="result-main">
+        <section class="result-hero-card">
+          <p class="result-card-kicker">审核结果总览</p>
+          <h2>一，审校结论</h2>
+          <p>这里作为结果页的主结论卡片区域，后续可以放审核结论摘要、综合风险评级、推荐处理动作等信息。</p>
+        </section>
+
+        <p class="result-section-title">各维度分析详情</p>
+
+        <section class="result-grid">
+          <article class="result-card">
+            <p class="result-card-kicker">风险维度</p>
+            <h3>二，政治敏感与合规性</h3>
+            <p>用于展示政治敏感内容、政策导向偏差及平台合规性相关判断。</p>
+          </article>
+          <article class="result-card">
+            <p class="result-card-kicker">风险维度</p>
+            <h3>三，内容质量与事实准度</h3>
+            <p>用于展示事实准确性、内容完整性、表达质量等相关审核结论。</p>
+          </article>
+          <article class="result-card">
+            <p class="result-card-kicker">风险维度</p>
+            <h3>四，法律与社会风气</h3>
+            <p>用于展示法律风险、侵权问题及不良社会风气相关风险判断。</p>
+          </article>
+          <article class="result-card">
+            <p class="result-card-kicker">风险维度</p>
+            <h3>五，舆情风险研判</h3>
+            <p>用于展示传播风险、舆情放大可能性及负面讨论预判。</p>
+          </article>
+        </section>
+      </main>
+
+      <div class="result-action-bar">
+        <button class="secondary-back-button" type="button" id="backToFirst" aria-label="返回第一页">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 19V5M5 12l7-7 7 7"></path>
+          </svg>
+        </button>
+      </div>
+    </section>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="scripts/main.js?v=20260317-7" defer></script>
+</body>
+</html>
