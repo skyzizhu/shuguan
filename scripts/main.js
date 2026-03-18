@@ -30,6 +30,10 @@ const followupInput = document.getElementById("followupInput");
 const applyFollowup = document.getElementById("applyFollowup");
 const sendFollowup = document.getElementById("sendFollowup");
 const magicWandTrack = document.getElementById("magicWandTrack");
+const confirmOverlay = document.getElementById("confirmOverlay");
+const closeConfirmMask = document.getElementById("closeConfirmMask");
+const cancelConfirm = document.getElementById("cancelConfirm");
+const confirmApplyFollowup = document.getElementById("confirmApplyFollowup");
 const toast = document.getElementById("toast");
 const resultSummaryText = document.getElementById("resultSummaryText");
 const resultSummaryLoading = document.getElementById("resultSummaryLoading");
@@ -59,6 +63,7 @@ let pendingReviewDraft = createEmptyPendingReview();
 let resultScreenReady = false;
 let resultLoadingTimer = null;
 let currentResultVersion = "initial";
+let resultLoadingMode = "initial";
 
 const resultTextMap = {
   politics: resultTextPolitics,
@@ -345,6 +350,10 @@ function isFollowupOpen() {
   return followupOverlay.classList.contains("is-open");
 }
 
+function isConfirmOpen() {
+  return confirmOverlay.classList.contains("is-open");
+}
+
 function syncStageState() {
   const isResultVisible = screenStage.classList.contains("is-slid");
   document.body.classList.toggle("is-result-screen-visible", isResultVisible);
@@ -366,12 +375,22 @@ function syncVersionSwitchState() {
   if (!showInitialResult || !showLatestResult || !resultVersionStatus) return;
 
   const hasLatest = Boolean(resultVersions.latest);
-  showLatestResult.disabled = !hasLatest;
+  const isLoading = resultMain.classList.contains("is-loading");
+
+  showInitialResult.disabled = isLoading;
+  showLatestResult.disabled = isLoading || !hasLatest;
 
   showInitialResult.classList.toggle("is-active", currentResultVersion === "initial");
   showLatestResult.classList.toggle("is-active", currentResultVersion === "latest");
   showInitialResult.setAttribute("aria-selected", String(currentResultVersion === "initial"));
   showLatestResult.setAttribute("aria-selected", String(currentResultVersion === "latest"));
+
+  if (isLoading) {
+    resultVersionStatus.textContent = resultLoadingMode === "review"
+      ? "正在生成最新复审结果"
+      : "正在生成首轮结果";
+    return;
+  }
 
   if (!hasLatest) {
     resultVersionStatus.textContent = "当前展示首轮结果";
@@ -421,6 +440,16 @@ function closeFollowupDrawer() {
   document.body.classList.remove("is-followup-open");
 }
 
+function openConfirmDialog() {
+  confirmOverlay.classList.add("is-open");
+  confirmOverlay.setAttribute("aria-hidden", "false");
+}
+
+function closeConfirmDialog() {
+  confirmOverlay.classList.remove("is-open");
+  confirmOverlay.setAttribute("aria-hidden", "true");
+}
+
 function resetToFirstScreen() {
   if ("scrollRestoration" in window.history) {
     window.history.scrollRestoration = "manual";
@@ -428,6 +457,7 @@ function resetToFirstScreen() {
 
   screenStage.classList.remove("is-slid");
   closeFollowupDrawer();
+  closeConfirmDialog();
   if (resultLoadingTimer) {
     window.clearTimeout(resultLoadingTimer);
     resultLoadingTimer = null;
@@ -443,26 +473,44 @@ function resetToFirstScreen() {
   resultTouchStartedAtTop = false;
   resultInteractionLocked = false;
   resultScreenReady = false;
+  resultLoadingMode = "initial";
   currentResultVersion = "initial";
   resultVersions.initial = createInitialResultVersion();
   resultVersions.latest = null;
   resultMain.classList.add("is-loading");
-  resultVersionBar.classList.add("is-hidden");
   renderResultVersion("initial");
   syncStageState();
 }
 
 function finishResultLoading() {
+  if (resultLoadingMode === "review") {
+    commitPendingReviewResults();
+    renderResultVersion("latest");
+    appendThreadMessage("assistant", "已根据本轮复审对第二屏结果进行了更新显示。你可以继续追问，或返回结果页查看新的复审结论。");
+    pendingReviewDraft = createEmptyPendingReview();
+    pendingReviewUpdate = false;
+    syncApplyButtonState();
+  } else {
+    renderResultVersion("initial");
+  }
+
   resultScreenReady = true;
   resultMain.classList.remove("is-loading");
-  resultVersionBar.classList.remove("is-hidden");
+  syncVersionSwitchState();
   resultLoadingTimer = null;
   syncStageState();
 }
 
-function beginResultLoading() {
+function beginResultLoading(mode = "initial") {
+  resultLoadingMode = mode;
   resultScreenReady = false;
   resultMain.classList.add("is-loading");
+  nextScreen.scrollTop = 0;
+  if (resultSummaryLoading && resultSummaryLoading.lastElementChild) {
+    resultSummaryLoading.lastElementChild.textContent = mode === "review"
+      ? "正在更新复审结果..."
+      : "正在生成首轮审核结果...";
+  }
   if (resultLoadingTimer) {
     window.clearTimeout(resultLoadingTimer);
   }
@@ -626,6 +674,12 @@ function submitFollowup(prompt, preferredDimension, preferredMode = inferModeFro
 function applyPendingReviewResults() {
   if (!pendingReviewUpdate) return;
 
+  openConfirmDialog();
+}
+
+function commitPendingReviewResults() {
+  if (!pendingReviewUpdate) return;
+
   const baseVersion = resultVersions.latest ? cloneResultVersion(resultVersions.latest) : cloneResultVersion(resultVersions.initial);
   baseVersion.summary = pendingReviewDraft.summaryText || baseVersion.summary;
 
@@ -635,12 +689,6 @@ function applyPendingReviewResults() {
   });
 
   resultVersions.latest = baseVersion;
-  renderResultVersion("latest");
-
-  appendThreadMessage("assistant", "已根据本轮复审对第二屏结果进行了更新显示。你可以继续追问，或返回结果页查看新的复审结论。");
-  pendingReviewDraft = createEmptyPendingReview();
-  pendingReviewUpdate = false;
-  syncApplyButtonState();
 }
 
 function shouldKeepTextareaScroll(target) {
@@ -741,6 +789,20 @@ applyFollowup.addEventListener("click", () => {
   applyPendingReviewResults();
 });
 
+cancelConfirm.addEventListener("click", () => {
+  closeConfirmDialog();
+});
+
+closeConfirmMask.addEventListener("click", () => {
+  closeConfirmDialog();
+});
+
+confirmApplyFollowup.addEventListener("click", () => {
+  closeConfirmDialog();
+  closeFollowupDrawer();
+  beginResultLoading("review");
+});
+
 showInitialResult.addEventListener("click", () => {
   renderResultVersion("initial");
 });
@@ -769,6 +831,11 @@ closeFollowupMask.addEventListener("click", () => {
 });
 
 window.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && isConfirmOpen()) {
+    closeConfirmDialog();
+    return;
+  }
+
   if (event.key === "Escape" && isFollowupOpen()) {
     closeFollowupDrawer();
   }
@@ -786,7 +853,7 @@ startReview.addEventListener("click", () => {
   closeFollowupDrawer();
   resetResultTexts();
   resetFollowupState();
-  beginResultLoading();
+  beginResultLoading("initial");
   followupDescription.textContent = "复审助手会基于首轮审核结果，帮助你进一步解释风险来源、聚焦重点问题，并形成待确认的复审结果，确认后再更新结果页。";
   followupInput.placeholder = currentReviewMaterial === "image"
     ? "请输入你想继续复审的问题，例如：我认为这块区域不该判高风险，请重新判断。"

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>智能审核</title>
-  <link rel="stylesheet" href="styles/main.css?v=20260318-39">
+  <link rel="stylesheet" href="styles/main.css?v=20260318-45">
 </head>
 <body>
   <div class="screen-stage" id="screenStage">
@@ -207,7 +207,7 @@
           <div class="followup-input-actions">
             <span class="followup-hint" id="followupHint">当前会基于已上传内容继续分析</span>
             <div class="followup-action-buttons">
-              <button class="ghost-button followup-apply-button" type="button" id="applyFollowup" disabled>更新复审结果</button>
+              <button class="ghost-button followup-apply-button" type="button" id="applyFollowup" disabled>重新审核</button>
               <button class="primary-button followup-send-button" type="button" id="sendFollowup">发送追问</button>
             </div>
           </div>
@@ -216,8 +216,22 @@
     </section>
   </div>
 
+  <div class="confirm-overlay" id="confirmOverlay" aria-hidden="true">
+    <button class="confirm-overlay-mask" type="button" id="closeConfirmMask" aria-label="关闭复审确认"></button>
+    <section class="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="confirmDialogTitle">
+      <div class="confirm-dialog-panel">
+        <h3 id="confirmDialogTitle">确定要重新进行审核吗？</h3>
+        <p>确认后将基于当前复审对话重新进行审核，将重新生成一份新的审核结果。</p>
+        <div class="confirm-dialog-actions">
+          <button class="ghost-button confirm-cancel-button" type="button" id="cancelConfirm">取消</button>
+          <button class="primary-button confirm-submit-button" type="button" id="confirmApplyFollowup">确定复审</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="scripts/main.js?v=20260318-39" defer></script>
+  <script src="scripts/main.js?v=20260318-45" defer></script>
 </body>
 </html>
