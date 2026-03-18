@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>智能审核</title>
-  <link rel="stylesheet" href="styles/main.css?v=20260317-7">
+  <link rel="stylesheet" href="styles/main.css?v=20260318-39">
 </head>
 <body>
   <div class="screen-stage" id="screenStage">
@@ -22,7 +22,7 @@
       <main class="page-main">
         <section class="task-panel">
           <div class="task-panel-head">
-            <p class="task-section-title">一，添加需要审核的内容与素材。</p>
+            <p class="task-section-title">添加需要审核的内容与素材。</p>
 
             <div class="task-mode-switch">
               <button class="secondary-mode-button" type="button" id="modeToggle">文字模式</button>
@@ -70,12 +70,12 @@
 
         <section class="helper-grid">
           <article class="helper-card">
-            <p class="helper-title">二，文案内容审核。</p>
+            <p class="helper-title">文案内容审核。</p>
             <p class="helper-text">AI大模型智能审核文案内容</p>
           </article>
           <article class="helper-card">
-            <p class="helper-title">三，一键发布内容。</p>
-            <p class="helper-text">将审核无误的文案内容快捷发布到社交平台</p>
+            <p class="helper-title">复审与结果纠偏。</p>
+            <p class="helper-text">支持通过多轮对话进一步复审，并确认后更新审核结果</p>
           </article>
         </section>
       </main>
@@ -84,59 +84,140 @@
     <section class="next-screen screen-panel" id="nextScreen">
       <header class="topbar topbar-secondary">
         <div class="brand">
-          <img src="assets/brand-mark.svg" alt="" width="36" height="36">
+          <img src="assets/result-mark.svg" alt="" width="36" height="36">
           <div class="brand-copy">
-            <strong>智能审核助手</strong>
-            <span>智能审核结果页</span>
+            <strong>审核结果总览</strong>
+            <span>查看首轮审核结论，并可继续发起复审纠偏与结果更新。</span>
           </div>
         </div>
       </header>
 
-      <main class="result-main">
+      <section class="result-version-bar" id="resultVersionBar" aria-label="审核结果版本切换">
+        <div class="result-version-switch" role="tablist" aria-label="审核结果版本">
+          <button class="result-version-button is-active" type="button" id="showInitialResult" role="tab" aria-selected="true">首轮结果</button>
+          <button class="result-version-button" type="button" id="showLatestResult" role="tab" aria-selected="false" disabled>最新复审结果</button>
+        </div>
+        <span class="result-version-status" id="resultVersionStatus">当前展示首轮结果</span>
+      </section>
+
+      <main class="result-main" id="resultMain">
         <section class="result-hero-card">
           <p class="result-card-kicker">审核结果总览</p>
           <h2>一，审校结论</h2>
-          <p>这里作为结果页的主结论卡片区域，后续可以放审核结论摘要、综合风险评级、推荐处理动作等信息。</p>
+          <div class="result-summary-loading" id="resultSummaryLoading" aria-live="polite">
+            <span class="result-loading-spinner" aria-hidden="true"></span>
+            <span>正在生成首轮审核结果...</span>
+          </div>
+          <p id="resultSummaryText">这里作为结果页的主结论卡片区域，后续可以放审核结论摘要、综合风险评级、推荐处理动作等信息。</p>
         </section>
 
-        <p class="result-section-title">各维度分析详情</p>
+        <p class="result-section-title" id="resultSectionTitle">各维度分析详情</p>
 
-        <section class="result-grid">
-          <article class="result-card">
+        <section class="result-grid" id="resultGrid">
+          <article class="result-card" data-dimension="politics">
             <p class="result-card-kicker">风险维度</p>
             <h3>二，政治敏感与合规性</h3>
-            <p>用于展示政治敏感内容、政策导向偏差及平台合规性相关判断。</p>
+            <p id="resultText-politics">用于展示政治敏感内容、政策导向偏差及平台合规性相关判断。</p>
+            <div class="result-followup-note" id="note-politics"></div>
           </article>
-          <article class="result-card">
+          <article class="result-card" data-dimension="quality">
             <p class="result-card-kicker">风险维度</p>
             <h3>三，内容质量与事实准度</h3>
-            <p>用于展示事实准确性、内容完整性、表达质量等相关审核结论。</p>
+            <p id="resultText-quality">用于展示事实准确性、内容完整性、表达质量等相关审核结论。</p>
+            <div class="result-followup-note" id="note-quality"></div>
           </article>
-          <article class="result-card">
+          <article class="result-card" data-dimension="legal">
             <p class="result-card-kicker">风险维度</p>
             <h3>四，法律与社会风气</h3>
-            <p>用于展示法律风险、侵权问题及不良社会风气相关风险判断。</p>
+            <p id="resultText-legal">用于展示法律风险、侵权问题及不良社会风气相关风险判断。</p>
+            <div class="result-followup-note" id="note-legal"></div>
           </article>
-          <article class="result-card">
+          <article class="result-card" data-dimension="sentiment">
             <p class="result-card-kicker">风险维度</p>
             <h3>五，舆情风险研判</h3>
-            <p>用于展示传播风险、舆情放大可能性及负面讨论预判。</p>
+            <p id="resultText-sentiment">用于展示传播风险、舆情放大可能性及负面讨论预判。</p>
+            <div class="result-followup-note" id="note-sentiment"></div>
           </article>
         </section>
+
       </main>
 
-      <div class="result-action-bar">
-        <button class="secondary-back-button" type="button" id="backToFirst" aria-label="返回第一页">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M12 19V5M5 12l7-7 7 7"></path>
-          </svg>
-        </button>
+    </section>
+  </div>
+
+  <div class="result-action-dock" id="resultActionDock" aria-hidden="true">
+    <button class="result-action-bar result-action-bar-chat" type="button" id="openFollowup" aria-label="打开补充分析工作台">
+      <span class="result-action-entry-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24">
+          <path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v7A2.5 2.5 0 0 1 17.5 16H11l-4.5 4v-4H6.5A2.5 2.5 0 0 1 4 13.5v-7Z"></path>
+          <path d="M8 8.5h8M8 11.5h5"></path>
+        </svg>
+      </span>
+      <span class="result-action-entry-copy">
+        <strong>复审助手</strong>
+        <span>输入你对首轮结果的疑问，发起多轮复审</span>
+      </span>
+    </button>
+
+    <div class="result-action-bar">
+      <button class="secondary-back-button" type="button" id="backToFirst" aria-label="返回第一页">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 19V5M5 12l7-7 7 7"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="followup-overlay" id="followupOverlay" aria-hidden="true">
+    <button class="followup-overlay-mask" type="button" id="closeFollowupMask" aria-label="关闭补充分析工作台"></button>
+    <section class="followup-drawer" id="followupDrawer" role="dialog" aria-modal="true" aria-labelledby="followupDrawerTitle">
+      <div class="followup-panel">
+        <div class="followup-drawer-head">
+          <div class="followup-header">
+            <div>
+              <h3 id="followupDrawerTitle">复审助手</h3>
+            </div>
+          </div>
+
+          <button class="followup-close-button" type="button" id="closeFollowup" aria-label="关闭补充分析工作台">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M6 6l12 12M18 6 6 18"></path>
+            </svg>
+          </button>
+        </div>
+
+        <p class="followup-description" id="followupDescription">复审助手会基于首轮审核结果，帮助你进一步解释风险来源、聚焦重点问题，并形成待确认的复审结果，确认后再更新结果页。</p>
+
+        <div class="followup-thread" id="followupThread">
+          <article class="thread-message thread-message-assistant">
+            <div class="thread-avatar">审</div>
+            <div class="thread-bubble">
+              <p>首轮审核已完成。如果你认为当前结论不准确、解释不充分，或希望系统结合更多上下文重新判断，可以继续发起复审对话。</p>
+            </div>
+          </article>
+        </div>
+
+        <div class="magic-wand-bar">
+          <div class="magic-wand-track" id="magicWandTrack">
+          </div>
+        </div>
+
+        <div class="followup-input-shell">
+          <textarea id="followupInput" placeholder="请输入你想继续复审的问题，例如：我认为这段判断过严，请结合上下文重新审核。"></textarea>
+          <div class="followup-input-actions">
+            <span class="followup-hint" id="followupHint">当前会基于已上传内容继续分析</span>
+            <div class="followup-action-buttons">
+              <button class="ghost-button followup-apply-button" type="button" id="applyFollowup" disabled>更新复审结果</button>
+              <button class="primary-button followup-send-button" type="button" id="sendFollowup">发送追问</button>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   </div>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="scripts/main.js?v=20260317-7" defer></script>
+  <script src="scripts/main.js?v=20260318-39" defer></script>
 </body>
 </html>
