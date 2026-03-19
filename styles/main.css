@@ -1178,7 +1178,7 @@ body.is-followup-open .result-action-dock {
 
 .thread-content {
   display: inline-flex;
-  align-items: flex-end;
+  align-items: center;
   gap: 8px;
   min-width: 0;
   max-width: min(780px, 88%);
@@ -1230,10 +1230,12 @@ body.is-followup-open .result-action-dock {
 .thread-message-state {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+  overflow: visible;
   color: var(--muted);
-  font-size: 12px;
-  line-height: 1.2;
 }
 
 .thread-message-state[hidden] {
@@ -1241,20 +1243,33 @@ body.is-followup-open .result-action-dock {
 }
 
 .thread-message-user .thread-message-state {
-  justify-content: flex-end;
+  justify-content: center;
+  align-self: center;
 }
 
 .thread-message-state-spinner {
-  width: 12px;
-  height: 12px;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
   border: 1.8px solid currentColor;
   border-right-color: transparent;
   opacity: 0.9;
+  position: relative;
+}
+
+.thread-message-state-icon {
+  width: 16px;
+  height: 16px;
+  display: block;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
 }
 
 .thread-message-state.is-pending {
-  color: #c89016;
+  color: var(--primary);
 }
 
 .thread-message-state.is-pending .thread-message-state-spinner {
@@ -1266,13 +1281,8 @@ body.is-followup-open .result-action-dock {
 }
 
 .thread-message-state.is-failed {
-  color: #d05c4f;
+  color: #e28278;
   cursor: pointer;
-}
-
-.thread-message-state.is-failed .thread-message-state-spinner {
-  border-color: currentColor;
-  border-right-color: transparent;
 }
 
 @keyframes thread-state-spin {
