@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>智能审核 - 错误流 Demo</title>
+  <link rel="stylesheet" href="styles/main.css?v=20260319-4">
+  <link rel="stylesheet" href="styles/error-flow.css?v=20260319-2">
+</head>
+<body>
+  <div class="screen-stage" id="screenStage">
+    <section class="app-shell screen-panel screen-panel-current">
+      <header class="topbar">
+        <div class="brand">
+          <img src="assets/brand-mark.svg" alt="" width="36" height="36">
+          <div class="brand-copy">
+            <strong>智能审核助手</strong>
+            <span>审核您的文案和素材是否合规，支持文字、文档、图片的识别和审核。</span>
+          </div>
+        </div>
+      </header>
+
+      <main class="page-main">
+        <section class="task-panel">
+          <div class="task-panel-head">
+            <p class="task-section-title">添加需要审核的内容与素材。</p>
+            <div class="task-mode-switch">
+              <button class="secondary-mode-button" type="button" id="modeToggle">文字模式</button>
+            </div>
+          </div>
+
+          <div class="unified-composer" id="composerPanel">
+            <section class="composer-box">
+              <div class="composer-meta">
+                <span id="charCount">0字符</span>
+              </div>
+
+              <div class="editor-shell is-empty" id="editorShell">
+                <textarea id="contentInput" placeholder=""></textarea>
+
+                <div class="empty-background" id="emptyBackground">
+                  <img src="assets/upload-cloud.svg" alt="" width="48" height="48">
+                  <strong>点击、拖拽图片或文档到此处</strong>
+                  <p>快捷、智能地审核您的文稿内容</p>
+                  <div class="file-type-row">
+                    <span>JPG</span>
+                    <span>PNG</span>
+                    <span>PDF</span>
+                    <span>DOC</span>
+                    <span>DOCX</span>
+                  </div>
+                </div>
+
+                <div class="attachment-state" id="attachmentState"></div>
+              </div>
+
+              <input
+                id="fileInput"
+                class="visually-hidden"
+                type="file"
+                accept=".jpg,.png,.pdf,.doc,.docx"
+              >
+            </section>
+          </div>
+
+          <div class="task-action-bar">
+            <button class="primary-button round-button task-review-button" type="button" id="startReview">审核</button>
+          </div>
+        </section>
+
+        <section class="helper-grid">
+          <article class="helper-card">
+            <p class="helper-title">文案内容审核。</p>
+            <p class="helper-text">AI大模型智能审核文案内容</p>
+          </article>
+          <article class="helper-card">
+            <p class="helper-title">错误流演示。</p>
+            <p class="helper-text">用于演示审核请求失败时的第二屏错误反馈页面</p>
+          </article>
+        </section>
+      </main>
+    </section>
+
+    <section class="next-screen screen-panel error-screen" id="nextScreen">
+      <header class="topbar topbar-secondary">
+        <div class="brand">
+          <img src="assets/result-mark.svg" alt="" width="36" height="36">
+          <div class="brand-copy">
+            <strong>审核结果总览</strong>
+            <span>当前页面用于演示审核请求失败时的错误反馈状态。</span>
+          </div>
+        </div>
+      </header>
+
+      <main class="error-screen-main">
+        <section class="result-hero-card result-error-hero">
+          <div class="result-error-head">
+            <span class="result-error-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M12 3.5 2.8 19.5h18.4L12 3.5Z"></path>
+                <path d="M12 9v5"></path>
+                <path d="M12 17.2h.01"></path>
+              </svg>
+            </span>
+            <div class="result-error-copy">
+              <p class="result-card-kicker result-error-kicker">网络异常</p>
+              <h2>网络连接异常，审核暂未完成</h2>
+              <p class="result-error-text">当前审核请求未能成功返回结果，请检查网络连接后重试，或稍后再次发起审核。</p>
+            </div>
+          </div>
+
+          <div class="result-error-actions">
+            <button class="ghost-button result-error-retry-button" type="button" id="retryReview">重新审核</button>
+            <button class="primary-button result-error-back-button" type="button" id="backToFirst">返回上一页</button>
+          </div>
+        </section>
+
+      </main>
+    </section>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="scripts/error-flow.js?v=20260319-2" defer></script>
+</body>
+</html>

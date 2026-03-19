@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>智能审核</title>
-  <link rel="stylesheet" href="styles/main.css?v=20260318-45">
+  <link rel="stylesheet" href="styles/main.css?v=20260319-4">
 </head>
 <body>
   <div class="screen-stage" id="screenStage">
@@ -75,7 +75,7 @@
           </article>
           <article class="helper-card">
             <p class="helper-title">复审与结果纠偏。</p>
-            <p class="helper-text">支持通过多轮对话进一步复审，并确认后更新审核结果</p>
+            <p class="helper-text">支持通过多轮对话进一步复审，优化方案，并确认后更新审核结果</p>
           </article>
         </section>
       </main>
@@ -91,14 +91,6 @@
           </div>
         </div>
       </header>
-
-      <section class="result-version-bar" id="resultVersionBar" aria-label="审核结果版本切换">
-        <div class="result-version-switch" role="tablist" aria-label="审核结果版本">
-          <button class="result-version-button is-active" type="button" id="showInitialResult" role="tab" aria-selected="true">首轮结果</button>
-          <button class="result-version-button" type="button" id="showLatestResult" role="tab" aria-selected="false" disabled>最新复审结果</button>
-        </div>
-        <span class="result-version-status" id="resultVersionStatus">当前展示首轮结果</span>
-      </section>
 
       <main class="result-main" id="resultMain">
         <section class="result-hero-card">
@@ -141,7 +133,6 @@
         </section>
 
       </main>
-
     </section>
   </div>
 
@@ -179,14 +170,23 @@
             </div>
           </div>
 
+          <div class="followup-review-notice" id="followupReviewNotice" hidden>
+            <span class="followup-review-notice-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M12 3.5 4.5 7.2v5.2c0 4.5 3 7.6 7.5 8.6 4.5-1 7.5-4.1 7.5-8.6V7.2L12 3.5Z"></path>
+                <path d="m9.2 12 1.8 1.8 3.8-4"></path>
+              </svg>
+            </span>
+            <p>当前已经进行了多轮讨论和优化，是否要对内容重新进行审核？</p>
+            <button class="ghost-button followup-review-notice-button" type="button" id="followupReviewNoticeAction">重新审核</button>
+          </div>
+
           <button class="followup-close-button" type="button" id="closeFollowup" aria-label="关闭补充分析工作台">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M6 6l12 12M18 6 6 18"></path>
             </svg>
           </button>
         </div>
-
-        <p class="followup-description" id="followupDescription">复审助手会基于首轮审核结果，帮助你进一步解释风险来源、聚焦重点问题，并形成待确认的复审结果，确认后再更新结果页。</p>
 
         <div class="followup-thread" id="followupThread">
           <article class="thread-message thread-message-assistant">
@@ -203,13 +203,10 @@
         </div>
 
         <div class="followup-input-shell">
-          <textarea id="followupInput" placeholder="请输入你想继续复审的问题，例如：我认为这段判断过严，请结合上下文重新审核。"></textarea>
+          <textarea id="followupInput" placeholder="请输入你希望系统对当前内容进行详细解释或进一步优化的问题。"></textarea>
           <div class="followup-input-actions">
             <span class="followup-hint" id="followupHint">当前会基于已上传内容继续分析</span>
-            <div class="followup-action-buttons">
-              <button class="ghost-button followup-apply-button" type="button" id="applyFollowup" disabled>重新审核</button>
-              <button class="primary-button followup-send-button" type="button" id="sendFollowup">发送追问</button>
-            </div>
+            <button class="primary-button followup-send-button" type="button" id="sendFollowup">发送</button>
           </div>
         </div>
       </div>
@@ -232,6 +229,6 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="scripts/main.js?v=20260318-45" defer></script>
+  <script src="scripts/main.js?v=20260319-4" defer></script>
 </body>
 </html>

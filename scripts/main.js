@@ -3,10 +3,6 @@ const charCount = document.getElementById("charCount");
 const screenStage = document.getElementById("screenStage");
 const firstScreen = document.querySelector(".screen-panel-current");
 const nextScreen = document.getElementById("nextScreen");
-const resultVersionBar = document.getElementById("resultVersionBar");
-const showInitialResult = document.getElementById("showInitialResult");
-const showLatestResult = document.getElementById("showLatestResult");
-const resultVersionStatus = document.getElementById("resultVersionStatus");
 const resultMain = document.getElementById("resultMain");
 const resultSectionTitle = document.getElementById("resultSectionTitle");
 const resultGrid = document.getElementById("resultGrid");
@@ -24,10 +20,10 @@ const followupOverlay = document.getElementById("followupOverlay");
 const closeFollowup = document.getElementById("closeFollowup");
 const closeFollowupMask = document.getElementById("closeFollowupMask");
 const followupHint = document.getElementById("followupHint");
-const followupDescription = document.getElementById("followupDescription");
+const followupReviewNotice = document.getElementById("followupReviewNotice");
+const followupReviewNoticeAction = document.getElementById("followupReviewNoticeAction");
 const followupThread = document.getElementById("followupThread");
 const followupInput = document.getElementById("followupInput");
-const applyFollowup = document.getElementById("applyFollowup");
 const sendFollowup = document.getElementById("sendFollowup");
 const magicWandTrack = document.getElementById("magicWandTrack");
 const confirmOverlay = document.getElementById("confirmOverlay");
@@ -48,6 +44,8 @@ const allowedExtensions = new Set(["jpg", "png", "pdf", "docx", "doc"]);
 const resultReturnWheelThreshold = -120;
 const resultReturnTouchThreshold = 110;
 const initialFollowupMessage = "首轮审核已完成。如果你认为当前结论不准确、解释不充分，或希望系统结合更多上下文重新判断，可以继续发起复审对话。";
+const sendFailurePattern = /(失败|error|异常|fail)/i;
+const followupSendDelay = 1100;
 let toastTimer = null;
 let hasResultScreen = false;
 let currentInputMode = "file";
@@ -62,8 +60,9 @@ let pendingReviewUpdate = false;
 let pendingReviewDraft = createEmptyPendingReview();
 let resultScreenReady = false;
 let resultLoadingTimer = null;
-let currentResultVersion = "initial";
 let resultLoadingMode = "initial";
+let followupUserTurnCount = 0;
+let followupSubmissionCount = 0;
 
 const resultTextMap = {
   politics: resultTextPolitics,
@@ -78,11 +77,6 @@ const defaultResultTexts = {
   quality: resultTextQuality?.textContent.trim() || "",
   legal: resultTextLegal?.textContent.trim() || "",
   sentiment: resultTextSentiment?.textContent.trim() || ""
-};
-
-const resultVersions = {
-  initial: createInitialResultVersion(),
-  latest: null
 };
 
 function syncViewportMetrics() {
@@ -121,19 +115,19 @@ const magicActionMetaByMaterial = {
     { id: "text-recheck-suspect", label: "复核疑似违规内容", topic: "请围绕文字内容中疑似违规的部分重新复核，并判断首轮审核是否过严或过宽。", dimension: "quality", mode: "locate" },
     { id: "text-locate-risk", label: "定位高风险段落", topic: "请定位文字内容中的高风险段落，并指出具体问题出在哪里。", dimension: "quality", mode: "locate" },
     { id: "text-explain-basis", label: "解释判定依据", topic: "请解释文字内容被判定为风险的具体依据，以及对应了哪些规则要求。", dimension: "legal", mode: "explain" },
-    { id: "text-check-misjudge", label: "排查误判内容", topic: "请排查文字内容中是否存在误判或边界模糊的地方，并重新说明判断。", dimension: "quality", mode: "explain" }
+    { id: "text-optimize-risk", label: "优化风险内容", topic: "请针对文字内容中的高风险表达给出更稳妥的优化建议，并尽量保留原意。", dimension: "quality", mode: "explain" }
   ],
   document: [
     { id: "doc-recheck-suspect", label: "复核疑似违规内容", topic: "请围绕文稿中的疑似违规内容重新复核，并判断首轮审核是否准确。", dimension: "quality", mode: "locate" },
     { id: "doc-locate-risk", label: "定位高风险段落", topic: "请定位文稿中的高风险段落与原句，并指出为什么会被判为风险。", dimension: "quality", mode: "locate" },
     { id: "doc-explain-basis", label: "解释规则与法律依据", topic: "请解释文稿中高风险内容对应了哪些规则、平台要求或法律依据。", dimension: "legal", mode: "explain" },
-    { id: "doc-check-misjudge", label: "排查误判或漏判", topic: "请排查文稿中是否存在误判或漏判内容，并结合上下文重新判断。", dimension: "quality", mode: "explain" }
+    { id: "doc-optimize-risk", label: "优化风险内容", topic: "请针对文稿中的高风险段落给出更稳妥的优化建议，并尽量保持原意与结构。", dimension: "quality", mode: "explain" }
   ],
   image: [
     { id: "image-text-risk", label: "复核图片文字风险", topic: "请围绕图片中已识别出的文字内容重新复核，看是否存在误判或边界模糊的风险。", dimension: "quality", mode: "locate" },
     { id: "image-visual-risk", label: "复核图片内容风险", topic: "请重新复核图片视觉内容本身是否存在涉黄、涉毒或其他违规风险。", dimension: "legal", mode: "locate" },
     { id: "image-locate-region", label: "定位高风险区域", topic: "请指出图片中高风险区域或敏感元素具体位于哪里，并说明原因。", dimension: "quality", mode: "locate" },
-    { id: "image-explain-basis", label: "解释判定依据", topic: "请解释图片内容或图片文字被判定为风险的依据，以及对应规则要求。", dimension: "legal", mode: "explain" }
+    { id: "image-optimize-risk", label: "优化风险内容", topic: "请针对图片中的高风险文字或画面元素给出更稳妥的优化建议，说明可以如何调整。", dimension: "quality", mode: "explain" }
   ]
 };
 
@@ -141,27 +135,6 @@ function createEmptyPendingReview() {
   return {
     dimensions: {},
     summaryText: ""
-  };
-}
-
-function createInitialResultVersion() {
-  return {
-    summary: defaultResultTexts.summary,
-    texts: {
-      politics: defaultResultTexts.politics,
-      quality: defaultResultTexts.quality,
-      legal: defaultResultTexts.legal,
-      sentiment: defaultResultTexts.sentiment
-    },
-    notes: {}
-  };
-}
-
-function cloneResultVersion(version) {
-  return {
-    summary: version.summary,
-    texts: { ...version.texts },
-    notes: { ...version.notes }
   };
 }
 
@@ -371,63 +344,6 @@ function buildDimensionNoteHtml(dimension, userPrompt, response) {
   `;
 }
 
-function syncVersionSwitchState() {
-  if (!showInitialResult || !showLatestResult || !resultVersionStatus) return;
-
-  const hasLatest = Boolean(resultVersions.latest);
-  const isLoading = resultMain.classList.contains("is-loading");
-
-  showInitialResult.disabled = isLoading;
-  showLatestResult.disabled = isLoading || !hasLatest;
-
-  showInitialResult.classList.toggle("is-active", currentResultVersion === "initial");
-  showLatestResult.classList.toggle("is-active", currentResultVersion === "latest");
-  showInitialResult.setAttribute("aria-selected", String(currentResultVersion === "initial"));
-  showLatestResult.setAttribute("aria-selected", String(currentResultVersion === "latest"));
-
-  if (isLoading) {
-    resultVersionStatus.textContent = resultLoadingMode === "review"
-      ? "正在生成最新复审结果"
-      : "正在生成首轮结果";
-    return;
-  }
-
-  if (!hasLatest) {
-    resultVersionStatus.textContent = "当前展示首轮结果";
-    return;
-  }
-
-  resultVersionStatus.textContent = currentResultVersion === "latest"
-    ? "当前展示最新复审结果"
-    : "当前展示首轮结果";
-}
-
-function renderResultVersion(versionKey = currentResultVersion) {
-  const nextVersion = versionKey === "latest" && resultVersions.latest ? "latest" : "initial";
-  const targetVersion = resultVersions[nextVersion] || resultVersions.initial;
-
-  currentResultVersion = nextVersion;
-
-  if (resultSummaryText) {
-    resultSummaryText.textContent = targetVersion.summary;
-  }
-
-  Object.entries(resultTextMap).forEach(([dimension, element]) => {
-    if (element) {
-      element.textContent = targetVersion.texts[dimension] || defaultResultTexts[dimension];
-    }
-
-    const noteElement = document.getElementById(`note-${dimension}`);
-    if (!noteElement) return;
-
-    const noteHtml = targetVersion.notes[dimension] || "";
-    noteElement.innerHTML = noteHtml;
-    noteElement.classList.toggle("is-visible", Boolean(noteHtml));
-  });
-
-  syncVersionSwitchState();
-}
-
 function openFollowupDrawer() {
   followupOverlay.classList.add("is-open");
   followupOverlay.setAttribute("aria-hidden", "false");
@@ -474,29 +390,22 @@ function resetToFirstScreen() {
   resultInteractionLocked = false;
   resultScreenReady = false;
   resultLoadingMode = "initial";
-  currentResultVersion = "initial";
-  resultVersions.initial = createInitialResultVersion();
-  resultVersions.latest = null;
   resultMain.classList.add("is-loading");
-  renderResultVersion("initial");
+  resetResultTexts();
   syncStageState();
 }
 
 function finishResultLoading() {
   if (resultLoadingMode === "review") {
     commitPendingReviewResults();
-    renderResultVersion("latest");
     appendThreadMessage("assistant", "已根据本轮复审对第二屏结果进行了更新显示。你可以继续追问，或返回结果页查看新的复审结论。");
     pendingReviewDraft = createEmptyPendingReview();
     pendingReviewUpdate = false;
     syncApplyButtonState();
-  } else {
-    renderResultVersion("initial");
   }
 
   resultScreenReady = true;
   resultMain.classList.remove("is-loading");
-  syncVersionSwitchState();
   resultLoadingTimer = null;
   syncStageState();
 }
@@ -534,8 +443,11 @@ function renderFollowupChips() {
 }
 
 function syncApplyButtonState() {
-  if (!applyFollowup) return;
-  applyFollowup.disabled = !pendingReviewUpdate;
+  if (!followupReviewNotice || !followupReviewNoticeAction) return;
+
+  const canReview = pendingReviewUpdate && followupUserTurnCount >= 2;
+  followupReviewNotice.hidden = !canReview;
+  followupReviewNoticeAction.disabled = !canReview;
 }
 
 function syncFollowupModeUi() {
@@ -572,11 +484,105 @@ function appendThreadMessage(role, text) {
   followupThread.scrollTop = followupThread.scrollHeight;
 }
 
+function appendPendingUserMessage(text) {
+  const article = document.createElement("article");
+  article.className = "thread-message thread-message-user";
+  article.innerHTML = `
+    <div class="thread-avatar">你</div>
+    <div class="thread-content">
+      <div class="thread-message-state is-pending">
+        <span class="thread-message-state-spinner" aria-hidden="true"></span>
+        <span class="thread-message-state-text">提交中</span>
+      </div>
+      <div class="thread-bubble">
+        <p>${escapeHtml(text)}</p>
+      </div>
+    </div>
+  `;
+  followupThread.appendChild(article);
+  followupThread.scrollTop = followupThread.scrollHeight;
+  return article;
+}
+
+function updateUserMessageState(article, state) {
+  if (!article) return;
+  const stateNode = article.querySelector(".thread-message-state");
+  const textNode = article.querySelector(".thread-message-state-text");
+  if (!stateNode || !textNode) return;
+
+  if (state === "success") {
+    stateNode.hidden = true;
+    stateNode.className = "thread-message-state is-success";
+    textNode.textContent = "提交成功";
+    return;
+  }
+
+  stateNode.hidden = false;
+  stateNode.className = `thread-message-state is-${state}`;
+  textNode.textContent = state === "failed" ? "提交失败，点击重试" : "提交中";
+}
+
+function shouldSimulateSendFailure(prompt) {
+  return sendFailurePattern.test(prompt) || followupSubmissionCount === 1;
+}
+
+function processFollowupSubmission({ prompt, dimension, mode, pendingMessage, forceSuccess = false }) {
+  const response = buildAssistantReply(prompt, dimension, mode);
+  if (!forceSuccess) {
+    followupSubmissionCount += 1;
+  }
+  const shouldFail = !forceSuccess && shouldSimulateSendFailure(prompt);
+
+  window.setTimeout(() => {
+    if (shouldFail) {
+      updateUserMessageState(pendingMessage, "failed");
+      pendingMessage.dataset.retryPrompt = prompt;
+      pendingMessage.dataset.retryDimension = dimension;
+      pendingMessage.dataset.retryMode = mode;
+      return;
+    }
+
+    updateUserMessageState(pendingMessage, "success");
+    delete pendingMessage.dataset.retryPrompt;
+    delete pendingMessage.dataset.retryDimension;
+    delete pendingMessage.dataset.retryMode;
+    followupUserTurnCount += 1;
+    appendThreadMessage("assistant", response);
+    pendingReviewDraft.dimensions[dimension] = {
+      prompt,
+      response,
+      cardText: buildUpdatedCardText(prompt, dimension, mode)
+    };
+    pendingReviewDraft.summaryText = buildPendingSummaryText();
+    pendingReviewUpdate = true;
+    syncApplyButtonState();
+  }, followupSendDelay);
+}
+
+function retryFailedMessage(article) {
+  if (!article) return;
+  const prompt = article.dataset.retryPrompt;
+  const dimension = article.dataset.retryDimension || inferDimensionFromPrompt(prompt || "");
+  const mode = article.dataset.retryMode || inferModeFromPrompt(prompt || "");
+  if (!prompt) return;
+
+  updateUserMessageState(article, "pending");
+  processFollowupSubmission({
+    prompt,
+    dimension,
+    mode,
+    pendingMessage: article,
+    forceSuccess: true
+  });
+}
+
 function resetFollowupState() {
   followupThread.innerHTML = "";
   appendThreadMessage("assistant", initialFollowupMessage);
   pendingReviewDraft = createEmptyPendingReview();
   pendingReviewUpdate = false;
+  followupUserTurnCount = 0;
+  followupSubmissionCount = 0;
   followupInput.value = "";
   syncApplyButtonState();
 }
@@ -589,10 +595,21 @@ function updateDimensionNote(dimension, userPrompt, response) {
 }
 
 function resetResultTexts() {
-  resultVersions.initial = createInitialResultVersion();
-  resultVersions.latest = null;
-  currentResultVersion = "initial";
-  renderResultVersion("initial");
+  if (resultSummaryText) {
+    resultSummaryText.textContent = defaultResultTexts.summary;
+  }
+
+  Object.entries(resultTextMap).forEach(([dimension, element]) => {
+    if (element) {
+      element.textContent = defaultResultTexts[dimension];
+    }
+
+    const noteElement = document.getElementById(`note-${dimension}`);
+    if (!noteElement) return;
+
+    noteElement.innerHTML = "";
+    noteElement.classList.remove("is-visible");
+  });
 }
 
 function inferDimensionFromPrompt(prompt) {
@@ -639,14 +656,14 @@ function buildPendingSummaryText() {
 function buildAssistantReply(prompt, dimension, mode) {
   const meta = followupDimensionMeta[dimension] || followupDimensionMeta.quality;
   if (mode === "explain") {
-    return `已收到本轮复审解释需求：${prompt}\n\n复审判断：我会重新核对首轮结论的依据，重点看触发句、上下文语境和是否存在过度放大风险的问题。\n纠偏说明：如果发现首轮结论解释不充分，复审会补充更明确的触发原因和判断范围。\n下一步：如果你认可这轮复审方向，可以点击“更新复审结果”再同步替换第二屏结果。`;
+    return `已收到本轮复审解释需求：${prompt}\n\n复审判断：我会重新核对首轮结论的依据，重点看触发句、上下文语境和是否存在过度放大风险的问题。\n纠偏说明：如果发现首轮结论解释不充分，复审会补充更明确的触发原因和判断范围。\n下一步：如果你认可这轮复审方向，可以在顶部提示区点击“重新审核”更新结果。`;
   }
 
   if (mode === "strategy") {
-    return `已收到本轮场景复审需求：${prompt}\n\n复审判断：我会结合目标发布场景重新评估这篇内容，而不是只沿用首轮通用结论。\n场景说明：不同平台对标题、首屏表达、事实依据和舆情放大点的敏感程度不同，复审会按对应场景重新聚焦。\n下一步：如果你认可这轮复审方向，可以点击“更新复审结果”再同步替换第二屏结果。`;
+    return `已收到本轮场景复审需求：${prompt}\n\n复审判断：我会结合目标发布场景重新评估这篇内容，而不是只沿用首轮通用结论。\n场景说明：不同平台对标题、首屏表达、事实依据和舆情放大点的敏感程度不同，复审会按对应场景重新聚焦。\n下一步：如果你认可这轮复审方向，可以在顶部提示区点击“重新审核”更新结果。`;
   }
 
-  return `已收到本轮定向复审需求：${prompt}\n\n复审判断：我会围绕 ${meta.label} 重新核查首轮结论是否存在判断过宽、证据不足或忽略上下文的问题。\n补充说明：${meta.response}\n下一步：如果你认可这轮复审方向，可以点击“更新复审结果”再同步替换第二屏结果。`;
+  return `已收到本轮定向复审需求：${prompt}\n\n复审判断：我会围绕 ${meta.label} 重新核查首轮结论是否存在判断过宽、证据不足或忽略上下文的问题。\n补充说明：${meta.response}\n下一步：如果你认可这轮复审方向，可以在顶部提示区点击“重新审核”更新结果。`;
 }
 
 function submitFollowup(prompt, preferredDimension, preferredMode = inferModeFromPrompt(prompt)) {
@@ -654,41 +671,43 @@ function submitFollowup(prompt, preferredDimension, preferredMode = inferModeFro
   if (!trimmed) return;
 
   const dimension = preferredDimension || inferDimensionFromPrompt(trimmed);
-  const response = buildAssistantReply(trimmed, dimension, preferredMode);
+  const pendingMessage = appendPendingUserMessage(trimmed);
 
   setFollowupContext(dimension);
-  appendThreadMessage("user", trimmed);
-  window.setTimeout(() => {
-    appendThreadMessage("assistant", response);
-    pendingReviewDraft.dimensions[dimension] = {
-      prompt: trimmed,
-      response,
-      cardText: buildUpdatedCardText(trimmed, dimension, preferredMode)
-    };
-    pendingReviewDraft.summaryText = buildPendingSummaryText();
-    pendingReviewUpdate = true;
-    syncApplyButtonState();
-  }, 220);
+  processFollowupSubmission({
+    prompt: trimmed,
+    dimension,
+    mode: preferredMode,
+    pendingMessage
+  });
 }
 
 function applyPendingReviewResults() {
   if (!pendingReviewUpdate) return;
-
-  openConfirmDialog();
+  closeConfirmDialog();
+  closeFollowupDrawer();
+  beginResultLoading("review");
 }
 
 function commitPendingReviewResults() {
   if (!pendingReviewUpdate) return;
 
-  const baseVersion = resultVersions.latest ? cloneResultVersion(resultVersions.latest) : cloneResultVersion(resultVersions.initial);
-  baseVersion.summary = pendingReviewDraft.summaryText || baseVersion.summary;
+  if (resultSummaryText && pendingReviewDraft.summaryText) {
+    resultSummaryText.textContent = pendingReviewDraft.summaryText;
+  }
 
   Object.entries(pendingReviewDraft.dimensions).forEach(([dimension, draft]) => {
-    baseVersion.texts[dimension] = draft.cardText || baseVersion.texts[dimension];
-    baseVersion.notes[dimension] = buildDimensionNoteHtml(dimension, draft.prompt, draft.response);
-  });
+    const textElement = resultTextMap[dimension];
+    if (textElement && draft.cardText) {
+      textElement.textContent = draft.cardText;
+    }
 
-  resultVersions.latest = baseVersion;
+    const noteElement = document.getElementById(`note-${dimension}`);
+    if (!noteElement) return;
+
+    noteElement.innerHTML = buildDimensionNoteHtml(dimension, draft.prompt, draft.response);
+    noteElement.classList.add("is-visible");
+  });
 }
 
 function shouldKeepTextareaScroll(target) {
@@ -764,6 +783,12 @@ attachmentState.addEventListener("click", (event) => {
   renderFiles();
 });
 
+followupThread.addEventListener("click", (event) => {
+  const retryState = event.target.closest(".thread-message-state.is-failed");
+  if (!retryState) return;
+  retryFailedMessage(retryState.closest(".thread-message"));
+});
+
 magicWandTrack.addEventListener("click", (event) => {
   const chip = event.target.closest(".followup-chip");
   if (!chip) return;
@@ -785,7 +810,7 @@ sendFollowup.addEventListener("click", () => {
   followupInput.value = "";
 });
 
-applyFollowup.addEventListener("click", () => {
+followupReviewNoticeAction.addEventListener("click", () => {
   applyPendingReviewResults();
 });
 
@@ -801,15 +826,6 @@ confirmApplyFollowup.addEventListener("click", () => {
   closeConfirmDialog();
   closeFollowupDrawer();
   beginResultLoading("review");
-});
-
-showInitialResult.addEventListener("click", () => {
-  renderResultVersion("initial");
-});
-
-showLatestResult.addEventListener("click", () => {
-  if (!resultVersions.latest) return;
-  renderResultVersion("latest");
 });
 
 followupInput.addEventListener("keydown", (event) => {
@@ -854,10 +870,7 @@ startReview.addEventListener("click", () => {
   resetResultTexts();
   resetFollowupState();
   beginResultLoading("initial");
-  followupDescription.textContent = "复审助手会基于首轮审核结果，帮助你进一步解释风险来源、聚焦重点问题，并形成待确认的复审结果，确认后再更新结果页。";
-  followupInput.placeholder = currentReviewMaterial === "image"
-    ? "请输入你想继续复审的问题，例如：我认为这块区域不该判高风险，请重新判断。"
-    : "请输入你想继续复审的问题，例如：我认为这段判断过严，请结合上下文重新审核。";
+  followupInput.placeholder = "请输入你希望系统对当前内容进行详细解释或进一步优化的问题。";
   syncFollowupModeUi();
   followupHint.textContent = fileCount
     ? currentReviewMaterial === "image"

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>审核错误页 Demo</title>
+  <link rel="stylesheet" href="styles/main.css?v=20260319-5">
+  <style>
+    body {
+      overflow: auto;
+    }
+
+    .error-demo-shell {
+      min-height: 100dvh;
+      padding: 16px 64px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .error-demo-toolbar {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 14px 18px;
+      border-radius: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.86);
+      background: rgba(255, 255, 255, 0.92);
+      box-shadow: var(--shadow);
+    }
+
+    .error-demo-copy strong,
+    .error-demo-copy span {
+      display: block;
+    }
+
+    .error-demo-copy strong {
+      font-size: 20px;
+      line-height: 1.3;
+    }
+
+    .error-demo-copy span {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .error-demo-actions {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .error-demo-layout {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .error-demo-layout .result-error-state {
+      padding-bottom: 0;
+    }
+
+    @media (max-width: 900px) {
+      .error-demo-shell {
+        padding: 14px;
+      }
+
+      .error-demo-toolbar {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .error-demo-actions {
+        width: 100%;
+      }
+
+      .error-demo-actions .ghost-button,
+      .error-demo-actions .primary-button {
+        flex: 1 1 auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="error-demo-shell">
+    <header class="error-demo-toolbar">
+      <div class="error-demo-copy">
+        <strong>审核错误页 Demo</strong>
+        <span>用于单独查看第二屏审核失败状态，支持切换网络错误和服务器错误两种场景。</span>
+      </div>
+      <div class="error-demo-actions">
+        <button class="ghost-button" type="button" id="showNetworkError">网络错误</button>
+        <button class="ghost-button" type="button" id="showServerError">服务器错误</button>
+        <a class="primary-button" href="/Users/fushan/Desktop/shuguan/index.html">返回主页面</a>
+      </div>
+    </header>
+
+    <main class="error-demo-layout">
+      <section class="result-error-state" aria-live="polite">
+        <div class="result-error-panel">
+          <span class="result-error-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M12 3.5 2.8 19.5h18.4L12 3.5Z"></path>
+              <path d="M12 9v5"></path>
+              <path d="M12 17.2h.01"></path>
+            </svg>
+          </span>
+          <p class="result-error-kicker" id="demoErrorKicker">网络异常</p>
+          <h2 id="demoErrorTitle">网络连接异常，审核暂未完成</h2>
+          <p class="result-error-text" id="demoErrorText">当前审核请求未能成功返回结果，请检查网络连接后重试，或稍后再次发起审核。</p>
+          <ul class="result-error-list" id="demoErrorList">
+            <li>请确认当前网络是否稳定</li>
+            <li>如多次失败，可稍后重新发起审核</li>
+            <li>必要时请联系系统管理员排查服务状态</li>
+          </ul>
+          <div class="result-error-actions">
+            <button class="ghost-button result-error-retry-button" type="button">重试审核</button>
+            <button class="primary-button result-error-back-button" type="button">返回上一页</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const scenarios = {
+      network: {
+        kicker: "网络异常",
+        title: "网络连接异常，审核暂未完成",
+        text: "当前审核请求未能成功返回结果，请检查网络连接后重试，或稍后再次发起审核。",
+        tips: [
+          "请确认当前网络是否稳定",
+          "如多次失败，可稍后重新发起审核",
+          "必要时请联系系统管理员排查服务状态"
+        ]
+      },
+      server: {
+        kicker: "服务异常",
+        title: "审核服务暂时不可用，请稍后重试",
+        text: "当前审核服务响应异常，暂时无法生成审核结果。建议稍后再次发起审核，或联系系统管理员排查服务状态。",
+        tips: [
+          "请稍后重新尝试发起审核",
+          "如持续失败，请联系系统管理员排查服务状态",
+          "如需紧急处理，可先保留当前内容待服务恢复后再审核"
+        ]
+      }
+    };
+
+    const kicker = document.getElementById("demoErrorKicker");
+    const title = document.getElementById("demoErrorTitle");
+    const text = document.getElementById("demoErrorText");
+    const list = document.getElementById("demoErrorList");
+
+    function renderScenario(type) {
+      const scenario = scenarios[type] || scenarios.network;
+      kicker.textContent = scenario.kicker;
+      title.textContent = scenario.title;
+      text.textContent = scenario.text;
+      list.innerHTML = scenario.tips.map((tip) => `<li>${tip}</li>`).join("");
+    }
+
+    document.getElementById("showNetworkError").addEventListener("click", () => {
+      renderScenario("network");
+    });
+
+    document.getElementById("showServerError").addEventListener("click", () => {
+      renderScenario("server");
+    });
+  </script>
+</body>
+</html>
